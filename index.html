@@ -567,7 +567,6 @@ function setHero(o){
 }
 
 function home(){
-  const total=S.reduce((a,s)=>a+s.els.length,0);
   app.innerHTML=`<div class="view">
   <section class="hero">
     <div class="wrap"><div class="copy">
@@ -577,12 +576,6 @@ function home(){
       <div class="cta">
         <button class="btn primary" onclick="document.getElementById('explore').scrollIntoView({behavior:'smooth'})">Explore the portal ↓</button>
         <button class="btn ghost" onclick="openMenu()">View all sections</button>
-      </div>
-      <div class="stats">
-        <div><b>${S.length}</b><span>Portal sections</span></div>
-        <div><b>${total}</b><span>Possible elements</span></div>
-        <div><b>3</b><span>Core values</span></div>
-        <div><b>1</b><span>Shared purpose</span></div>
       </div>
     </div></div>
     <div id="heroVisual"></div>
