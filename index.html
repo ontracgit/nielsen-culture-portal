@@ -228,7 +228,8 @@ header{background:#fff;border-bottom:0;box-shadow:0 1px 0 var(--line)}
 .hero{width:min(calc(100% - 64px),calc(var(--max) - 64px));margin:24px auto 0;border-radius:20px}
 .hero .wrap{padding-top:72px;padding-bottom:84px}
 .hero .eyebrow{color:#fff;font-weight:500;font-size:14px;opacity:.85}
-.hero h1{font-weight:800;letter-spacing:-.04em;line-height:1.02}
+.hero h1{font-weight:800;letter-spacing:-.04em;line-height:1.02;text-wrap:balance}
+@media(min-width:901px){.hero .copy{max-width:640px}.hv{width:46%}}
 .hero p{font-weight:400;font-size:18px;line-height:1.65}
 .stats{border-top-color:rgba(255,255,255,.2)}
 .stats b{font-weight:800;letter-spacing:-.03em}
@@ -558,7 +559,7 @@ const HERO={
     const k=(txt,v,c,l,t)=>`<div class="kudo" style="left:${l}%;top:${t}%"><i style="background:${c}">${v}</i>${txt}</div>`;
     return `<div class="hv hv-d" aria-hidden="true">${spectrum(grad('#6E37FA','#32BBB9',8)).replace('class="spectrum"','style="position:absolute;inset:0;width:100%;height:100%"')}
       ${f('team',30,8,150)}${f('grin',68,14,110)}${f('headphones',52,42,170)}${f('laugh',22,58,120)}${f('phone',74,62,130)}
-      ${k('Thanks for backing my idea, Sam!','Courage','#FF9408',8,40)}${k('Welcome to the team, Ana','Inclusion','#F40953',44,80)}${k('Great mentoring session','Growth','#B30095',58,5)}</div>`}}
+      ${k('Thanks for backing my idea, Sam!','Courage','#FF9408',8,40)}${k('Welcome to the team, Ana','Inclusion','#F40953',44,80)}${k('Great mentoring session','Growth','#B30095',46,4)}</div>`}}
 };
 const heroOpt='d'; // chosen: Portraits
 function setHero(o){
