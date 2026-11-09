@@ -252,6 +252,31 @@ header{background:#fff;border-bottom:0;box-shadow:0 1px 0 var(--line)}
 .pager b{font-weight:800;letter-spacing:-.02em;color:var(--navy)}
 .journey b{font-weight:800}
 
+/* ---------- featured band (nielsen.com Insights style) ---------- */
+.feat{background:linear-gradient(115deg,#1A0E8C 0%,#0E2A5E 42%,#2A0F45 78%,#3A0A35 100%);color:#fff;padding:88px 0 96px}
+.feat .head .eyebrow{color:var(--aqua)!important;font-weight:600}
+.feat .head h2{color:#fff}
+.feat .head p{color:#C9D3E6}
+.fcard{background:rgba(64,110,175,.28);border-radius:16px;overflow:hidden;display:grid}
+.fcard .txt{padding:44px 48px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.fcard .ey{color:var(--aqua);font-weight:600;font-size:17px}
+.fcard h3{font-size:clamp(26px,2.6vw,36px);font-weight:800;letter-spacing:-.035em;line-height:1.08;text-wrap:balance}
+.fcard p{color:#E3E9F4;font-size:16px;line-height:1.7}
+.fcard .meta{display:flex;align-items:center;gap:18px;margin-top:auto;padding-top:22px;font-weight:600;font-size:15px}
+.fcard .meta .tg{background:rgba(255,255,255,.14);padding:6px 12px;border-radius:6px}
+.fcard .img{background-size:cover;background-position:center;min-height:300px}
+.f-big{grid-template-columns:1fr 1.45fr;margin-bottom:28px}
+.f-row{display:grid;grid-template-columns:2fr 1fr;gap:28px}
+.f-mid{grid-template-columns:1fr 1fr}
+.f-mid .art{min-height:340px}
+.f-mid .art svg{width:100%;height:100%;display:block}
+.f-side{grid-template-rows:auto 1fr}
+.f-side .cover{position:relative;height:250px;background:linear-gradient(135deg,#F40953 0%,#FA32A0 70%,#FF6FB8 100%);clip-path:polygon(0 0,100% 0,100% 100%,0 86%);padding:28px 30px;display:flex;flex-direction:column;justify-content:center}
+.f-side .cover small{font-weight:800;font-size:24px;letter-spacing:-.03em}
+.f-side .cover b{font-size:54px;font-weight:800;letter-spacing:-.05em;line-height:.9;text-transform:uppercase}
+.f-side .txt{padding:28px 30px 34px}
+@media(max-width:980px){.f-big,.f-mid,.f-row{grid-template-columns:1fr}.f-big .img{order:-1;min-height:240px}.fcard .txt{padding:30px 24px}.f-mid .art{min-height:220px}}
+
 .view{animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -581,6 +606,43 @@ function home(){
 
       <div class="journey">
         ${[['Know','Understand the purpose, values and story'],['Feel','Connect through stories, recognition and belonging'],['Do','Practise through games, challenges and habits'],['Shape','Share your voice and see what changes']].map(([t,d],i)=>`<div><i>${i+1}</i><b>${t}</b><span>${d}</span></div>`).join('')}
+      </div>
+    </div>
+  </section>
+
+  <section class="feat" aria-labelledby="featTitle">
+    <div class="wrap">
+      <div class="head">
+        <div><div class="eyebrow">Featured this month</div><h2 id="featTitle">Stories, games and moments worth your time</h2></div>
+        <p>A curated feed on the home page keeps the portal fresh. Example content shown.</p>
+      </div>
+      <article class="fcard f-big">
+        <div class="txt">
+          <div class="ey">Values in action</div>
+          <h3>How one team turned feedback into a weekly habit</h3>
+          <p>Fifteen minutes every Friday, one question each: what helped, what got in the way. Three months on, here is what changed for the team and their clients.</p>
+          <div class="meta"><span class="tg">Courage</span><span>◷ 4 min read</span></div>
+        </div>
+        <div class="img" style="background-image:${img('team')}" role="img" aria-label="Two colleagues laughing at a desk"></div>
+      </article>
+      <div class="f-row">
+        <article class="fcard f-mid">
+          <div class="art" aria-hidden="true"><svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice"><rect width="400" height="340" fill="#FF9408"/><polygon points="170,0 400,60 400,340 120,340" fill="#5B2FE0"/><polygon points="0,170 140,120 110,340 0,340" fill="#2A9C9A"/><polygon points="0,0 170,0 140,120 0,170" fill="#B4730E"/><circle cx="220" cy="200" r="118" fill="#002041"/><polygon points="300,300 400,240 400,340 330,340" fill="#B30095"/></svg></div>
+          <div class="txt">
+            <div class="ey">Featured game</div>
+            <h3>The Values Quiz</h3>
+            <p>Ten questions, two minutes. Test what you know about Inclusion, Courage and Growth, and see how your team ranks.</p>
+            <div class="meta"><span class="tg">Play &amp; Learn</span><span>◷ 2 min</span></div>
+          </div>
+        </article>
+        <article class="fcard f-side">
+          <div class="cover" aria-hidden="true"><small>the</small><b>Culture<br>Round-up</b></div>
+          <div class="txt">
+            <div class="ey">Featured</div>
+            <h3>The Culture Round-up</h3>
+            <p>This month's top kudos, new champions and the rituals teams are trying.</p>
+          </div>
+        </article>
       </div>
     </div>
   </section></div>`;
