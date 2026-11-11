@@ -309,6 +309,8 @@ header{background:#fff;border-bottom:0;box-shadow:0 1px 0 var(--line)}
 @media(max-width:640px){.nia-slot.docked{width:42vw;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}}
 .nia-ph{display:none;margin:24px;aspect-ratio:16/9;border-radius:12px;border:2px dashed rgba(255,255,255,.25);place-content:center;text-align:center;color:#C9D3E6;font-size:14px;padding:16px}
 .f-nia:has(.nia-slot.docked) .nia-ph{display:grid}
+#niaDebug{position:fixed;left:12px;bottom:12px;z-index:95;width:min(440px,calc(100vw - 24px));max-height:46vh;overflow:auto;background:rgba(0,20,40,.9);color:#D5DCE8;font:12px/1.45 ui-monospace,Menlo,monospace;padding:10px 12px;border-radius:10px}
+#niaDebug b{color:#50E6AA;font-weight:700}
 /* home stays mounted (parked off-screen) while a section is open, so a call with Nia survives navigation */
 #homeView.parked{position:fixed;left:-300vw;top:0;width:100vw;visibility:hidden;z-index:70}
 #homeView.parked .nia-slot{visibility:visible}
@@ -575,19 +577,68 @@ function niaDock(on){
 document.addEventListener('tavus:conversation-started',()=>{ niaLive=true; });
 document.addEventListener('tavus:conversation-ended',()=>{ niaLive=false; niaDock(false); });
 window.addEventListener('hashchange',()=>{ if(niaLive) niaDock(true); });
-// Tool on the PAL: open_section({section_id}). Events bubble from <tavus-embed> to document.
-document.addEventListener('tavus:tool-call',e=>{
-  const {name,arguments:args,tool_call_id}=e.detail||{};
-  if(name!=='open_section') return;
+// ---- Nia -> page navigation ----
+// Primary path: the PAL's open_section tool (delivery: app_message) -> tavus:tool-call.
+// Tolerant of tool-name and parameter variations, and of a section given by title instead of id.
+const norm=v=>String(v||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+function findSection(q){
+  const n=norm(q); if(!n) return null;
+  if(/^(home|main|homepage|home page|start|overview)$/.test(n)) return {id:'home',title:'Home page',blurb:'The portal home page'};
+  return S.find(s=>s.id===n)
+    || S.find(s=>norm(s.title)===n || norm(s.short)===n)
+    || S.find(s=>n.includes(norm(s.title)) || norm(s.title).includes(n) || n.includes(norm(s.short)))
+    || null;
+}
+function niaGo(sec,via){
+  niaDebug('navigate',`${sec.id} (via ${via})`);
+  niaDock(true);
+  if(location.hash!=='#'+sec.id) location.hash=sec.id;
+}
+const NIA_TOOL=/section|navigat|open.?page|go.?to|show.?page/i;
+function onNiaTool(d,via){
+  const {name,arguments:args,tool_call_id}=d||{};
+  niaDebug('tool-call',`${name} ${typeof args==='string'?args:JSON.stringify(args)}${tool_call_id?'':' (no id)'}`);
+  if(!NIA_TOOL.test(String(name||''))) return;
   const el=document.querySelector('tavus-embed');
   const reply=(status,output)=>{ if(tool_call_id&&el&&el.sendMessage) el.sendMessage({event_type:'conversation.tool_result',properties:{tool_call_id,output,status}}); };
-  let id; try{ id=String(JSON.parse(args||'{}').section_id||'').trim(); }catch(err){}
-  if(id==='home'){ niaDock(true); location.hash='home'; return reply('success',{opened:'Home page'}); }
-  const s=S.find(x=>x.id===id);
-  if(!s) return reply('error',{error:`Unknown section "${id}". Valid ids: ${S.map(x=>x.id).join(', ')}, home`});
-  niaDock(true); location.hash=s.id;
-  reply('success',{opened:s.title,summary:s.blurb});
+  let a=args; if(typeof a==='string'){ try{ a=JSON.parse(a||'{}'); }catch(err){ a={section_id:a}; } }
+  const q=a&&typeof a==='object' ? (a.section_id??a.section??a.sectionId??a.id??a.section_name??a.name??a.page??a.target??Object.values(a)[0]) : a;
+  const sec=findSection(q);
+  if(!sec){ niaDebug('no match',String(q)); return reply('error',{error:`Unknown section "${q}". Valid ids: ${S.map(x=>x.id).join(', ')}, home`}); }
+  niaGo(sec,via);
+  reply('success',{opened:sec.title,summary:sec.blurb});
+}
+let niaLastTool=0;
+document.addEventListener('tavus:tool-call',e=>{ niaLastTool=Date.now(); onNiaTool(e.detail,'tool'); });
+// Fallback: if Nia SAYS she is taking the visitor somewhere but no tool call arrived, follow her words.
+const NIA_SAYS=/(tak(e|ing) you (to|over to|into)|(i'?ve|i have|let me|i'?ll|i will) (open|opened|bring|brought|take|taken|pull(ed)? up|navigat\w*)|(opening|bringing up|pulling up|navigating to|here'?s|here is|now (on|in|at)|you'?re now (on|in|at)))/i;
+document.addEventListener('tavus:protocol-message',e=>{
+  const d=e.detail||{}; const p=d.properties||{};
+  if(d.event_type==='conversation.tool_call'){ niaDebug('protocol tool_call',p.name||''); return; }
+  if(d.event_type!=='conversation.utterance' || typeof p.final==='boolean') return;
+  const role=p.role, speech=String(p.speech||'');
+  niaDebug(role==='user'?'visitor':'nia',speech.slice(0,140));
+  if(role==='user' || !NIA_SAYS.test(speech)) return;
+  setTimeout(()=>{ // give a real tool call a moment to win
+    if(Date.now()-niaLastTool<4000) return;
+    const t=norm(speech);
+    const byTitle=S.filter(s=>t.includes(norm(s.title)));
+    const hits=byTitle.length?byTitle:S.filter(s=>norm(s.short)!=='growth'&&t.includes(norm(s.short)));
+    if(hits.length===1) niaGo(hits[0],'speech');
+    else if(/\bhome( page)?\b|main page/.test(t) && !hits.length) niaGo({id:'home'},'speech');
+  },1200);
 });
+// Debug panel: add ?debug=1 to the URL to see what Nia sends to the page.
+const NIA_DBG=/[?&]debug\b/.test(location.search);
+function niaDebug(kind,msg){
+  if(!NIA_DBG) return;
+  console.info('[nia]',kind,msg);
+  let box=document.getElementById('niaDebug');
+  if(!box){ box=document.createElement('div'); box.id='niaDebug'; document.body.appendChild(box); }
+  const row=document.createElement('div'); row.innerHTML=`<b>${esc(kind)}</b> ${esc(msg)}`; box.prepend(row);
+  while(box.children.length>18) box.lastChild.remove();
+}
+if(NIA_DBG){ ['tavus:ready','tavus:mode-change','tavus:state-change','tavus:error','tavus:conversation-started','tavus:conversation-ended'].forEach(n=>document.addEventListener(n,e=>niaDebug(n.replace('tavus:',''),JSON.stringify(e.detail||{})))); setTimeout(()=>niaDebug('debug','panel on'),0); }
 
 function spectrum(cols){
   // nested chevrons echoing the brand motion spectrum
