@@ -143,6 +143,9 @@ body.menu-open .drawer{transform:none}
 .s-hero .wrap{padding-top:40px;padding-bottom:56px;position:relative;z-index:2}
 .crumbs{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center}
 .crumbs a:hover{color:var(--navy);text-decoration:underline}
+.s-top{display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:relative;z-index:1}
+.pill.back{padding:7px 18px;font-size:14px;background:#fff}
+.pill.back:hover{background:var(--purple);color:#fff}
 .s-hero .row{display:flex;gap:28px;align-items:center;margin-top:34px}
 .s-hero .ic{width:84px;height:84px;flex:none;background:#fff;border-radius:20px;padding:14px}
 .s-hero .eyebrow{color:var(--c)}
@@ -186,6 +189,15 @@ body.menu-open .drawer{transform:none}
 .ln{height:6px;border-radius:3px;background:var(--gray2);margin:5px 0}
 .ln.s{width:55%}.ln.m2{width:75%}
 .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.pv:has(.yt),.pv.yt-on{padding:0;height:auto;aspect-ratio:16/9}
+.yt,.pv iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.yt{padding:0;cursor:pointer;background:#000;display:grid;place-items:center}
+.yt img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.yt:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,32,65,.55),rgba(0,32,65,0) 55%)}
+.yt .play{position:relative;z-index:1;width:56px;height:56px;transition:transform .2s}
+.yt:hover .play{transform:scale(1.08)}
+.yt .chip{position:absolute;z-index:1;left:12px;bottom:12px;background:rgba(0,0,0,.45);color:#fff}
+.yt:focus-visible{outline:3px solid var(--aqua);outline-offset:-3px}
 .play{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .play:after{content:"";border-left:12px solid var(--navy);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
 .chip{display:inline-block;font-size:10px;font-weight:700;color:#fff;padding:3px 7px;border-radius:5px}
@@ -291,8 +303,14 @@ header{background:#fff;border-bottom:0;box-shadow:0 1px 0 var(--line)}
 .f-nia .live:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 4px rgba(80,230,170,.2)}
 @media(max-width:980px){.f-nia .nia-slot{order:-1;margin:16px 16px 0}}
 @media(max-width:640px){.nia-slot{aspect-ratio:9/16}}
+/* docked: Nia floats bottom-right during a call while the visitor looks at a page */
+.nia-slot.docked{position:fixed;z-index:70;margin:0;right:max(20px,env(safe-area-inset-right,0px));bottom:max(20px,env(safe-area-inset-bottom,0px));width:clamp(220px,24vw,340px);aspect-ratio:3/4;border:3px solid #fff;border-radius:16px;box-shadow:0 18px 50px rgba(0,32,65,.35);animation:niaIn .3s ease}
+@keyframes niaIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+@media(max-width:640px){.nia-slot.docked{width:42vw;right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px))}}
+.nia-ph{display:none;margin:24px;aspect-ratio:16/9;border-radius:12px;border:2px dashed rgba(255,255,255,.25);place-content:center;text-align:center;color:#C9D3E6;font-size:14px;padding:16px}
+.f-nia:has(.nia-slot.docked) .nia-ph{display:grid}
 /* home stays mounted (parked off-screen) while a section is open, so a call with Nia survives navigation */
-#homeView.parked{position:fixed;left:-300vw;top:0;width:100vw;visibility:hidden}
+#homeView.parked{position:fixed;left:-300vw;top:0;width:100vw;visibility:hidden;z-index:70}
 #homeView.parked .nia-slot{visibility:visible}
 
 .view{animation:fade .35s ease}
@@ -356,6 +374,7 @@ const icon=(k,col)=>`<svg class="ic" viewBox="0 0 64 64" aria-hidden="true">${IC
 
 /* ---------- mini previews (illustrative only) ---------- */
 const P = {
+  ytfilm:()=>`<button type="button" class="yt" data-yt="pLGjZkrKX1Y" aria-label="Play the Nielsen film (YouTube)"><img src="https://i.ytimg.com/vi/pLGjZkrKX1Y/hqdefault.jpg" alt="" loading="lazy"><span class="play"></span><span class="chip">▶ YouTube</span></button>`,
   video:c=>`<div class="m" style="aspect-ratio:16/9;border-radius:10px;background:linear-gradient(135deg,var(--navy),${c});display:grid;place-items:center;position:relative"><div class="play"></div><span class="chip" style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.35)">1:24</span></div>`,
   values:c=>`<div class="m flex" style="gap:8px;align-items:stretch">${[['Inclusion','#F40953'],['Courage','#FF9408'],['Growth','#B30095']].map(([n,k])=>`<div style="flex:1;background:${k};border-radius:8px;padding:10px 8px;color:#fff;height:110px;display:flex;flex-direction:column;justify-content:flex-end"><b style="font-size:12px">${n}</b><div class="ln" style="background:rgba(255,255,255,.5);width:80%"></div><div class="ln" style="background:rgba(255,255,255,.35);width:55%"></div></div>`).join('')}</div>`,
   timeline:c=>`<div class="m" style="position:relative;height:100px"><div style="position:absolute;left:0;right:0;top:50px;height:3px;background:var(--gray2)"></div>${[0,1,2,3].map(i=>`<div style="position:absolute;left:${i*30+4}%;top:${i%2?58:8}px;width:58px"><div class="dot" style="background:${i==3?c:'var(--navy)'};position:absolute;left:0;top:${i%2?-14:36}px"></div><div class="m-card" style="padding:6px"><b style="font-size:10px">${['1923','1950','2000s','Today'][i]}</b><div class="ln s"></div></div></div>`).join('')}</div>`,
@@ -411,7 +430,7 @@ const S = [
   quote:'Powering a better media future for all people.',qby:'Nielsen brand purpose',
   outcomes:['Every employee can explain the purpose in one line','Values feel concrete, not abstract','New joiners grasp the culture in five minutes'],
   els:[
-   ['Purpose & mission film','A 60–90 second film from the CEO on why Nielsen exists and where it is heading.','video',['Video'],1],
+   ['Purpose & mission film','A 60–90 second film from the CEO on why Nielsen exists and where it is heading.','ytfilm',['Video'],1],
    ['Values explorer','Inclusion, Courage and Growth on interactive cards: what each looks like, what it doesn\'t, and real stories.','values',['Interactive'],1],
    ['Behaviour charter','The expected behaviours for each value, broken down by individual, manager and leader.','doc',['Content']],
    ['Our story timeline','A scroll-through of the founding moments, milestones and turning points that shaped who we are.','timeline',['Interactive']],
@@ -544,6 +563,18 @@ function niaEmbed(){
   if(!NIA_DEPLOYMENT_ID) return `<div class="nia-missing"><b>Nia is not connected yet</b>Add the Tavus deployment id to show the live video partner here.</div>`;
   return `<tavus-embed deployment-id="${esc(NIA_DEPLOYMENT_ID)}" expand-options="${esc(NIA_EXPAND)}" override-config="${esc(NIA_OVERRIDE)}" conversational-context="${esc(niaContext())}"></tavus-embed>`;
 }
+// During a call, Nia shrinks to a floating corner video whenever the page changes,
+// so the visitor can see the section she opened. Turning expand-options off collapses the modal mid-call.
+let niaLive=false;
+function niaDock(on){
+  const slot=document.querySelector('.nia-slot'), el=slot&&slot.querySelector('tavus-embed'); if(!el) return;
+  if(slot.classList.contains('docked')===on) return;
+  slot.classList.toggle('docked',on);
+  el.setAttribute('expand-options', on ? JSON.stringify({enabled:false}) : NIA_EXPAND);
+}
+document.addEventListener('tavus:conversation-started',()=>{ niaLive=true; });
+document.addEventListener('tavus:conversation-ended',()=>{ niaLive=false; niaDock(false); });
+window.addEventListener('hashchange',()=>{ if(niaLive) niaDock(true); });
 // Tool on the PAL: open_section({section_id}). Events bubble from <tavus-embed> to document.
 document.addEventListener('tavus:tool-call',e=>{
   const {name,arguments:args,tool_call_id}=e.detail||{};
@@ -551,10 +582,10 @@ document.addEventListener('tavus:tool-call',e=>{
   const el=document.querySelector('tavus-embed');
   const reply=(status,output)=>{ if(tool_call_id&&el&&el.sendMessage) el.sendMessage({event_type:'conversation.tool_result',properties:{tool_call_id,output,status}}); };
   let id; try{ id=String(JSON.parse(args||'{}').section_id||'').trim(); }catch(err){}
-  if(id==='home'){ location.hash='home'; return reply('success',{opened:'Home page'}); }
+  if(id==='home'){ niaDock(true); location.hash='home'; return reply('success',{opened:'Home page'}); }
   const s=S.find(x=>x.id===id);
   if(!s) return reply('error',{error:`Unknown section "${id}". Valid ids: ${S.map(x=>x.id).join(', ')}, home`});
-  location.hash=s.id;
+  niaDock(true); location.hash=s.id;
   reply('success',{opened:s.title,summary:s.blurb});
 });
 
@@ -667,10 +698,11 @@ function home(){
           <div class="meta"><span class="tg">Live video</span><span class="live">Available now</span></div>
         </div>
         <div class="nia-slot">${niaEmbed()}</div>
+        <div class="nia-ph">Nia is with you in the corner of the screen ↘</div>
       </article>
       <div class="f-row">
         <article class="fcard f-mid">
-          <div class="art" aria-hidden="true"><svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice"><rect width="400" height="340" fill="#FF9408"/><polygon points="170,0 400,60 400,340 120,340" fill="#5B2FE0"/><polygon points="0,170 140,120 110,340 0,340" fill="#2A9C9A"/><polygon points="0,0 170,0 140,120 0,170" fill="#B4730E"/><circle cx="220" cy="200" r="118" fill="#002041"/><polygon points="300,300 400,240 400,340 330,340" fill="#B30095"/></svg></div>
+          <div class="art" aria-hidden="true"><svg viewBox="0 0 400 340" preserveAspectRatio="xMidYMid slice"><rect width="400" height="340" fill="#FF9408"/><polygon points="170,0 400,60 400,340 120,340" fill="#5B2FE0"/><polygon points="0,170 140,120 110,340 0,340" fill="#2A9C9A"/><polygon points="0,0 170,0 140,120 0,170" fill="#B4730E"/><defs><clipPath id="quizClip"><circle cx="200" cy="172" r="99"/></clipPath></defs><circle cx="200" cy="172" r="106" fill="#fff"/><image href="img/yellow.jpg" x="96" y="70" width="208" height="206" preserveAspectRatio="xMidYMid slice" clip-path="url(#quizClip)"/><g transform="translate(102 258)"><rect width="196" height="42" rx="21" fill="#fff"/><circle cx="24" cy="21" r="6" fill="#F40953"/><circle cx="40" cy="21" r="6" fill="#FF9408"/><circle cx="56" cy="21" r="6" fill="#6E37FA"/><text x="72" y="26" font-size="14" font-weight="700" fill="#002041">Question 3 of 10</text></g><polygon points="300,300 400,240 400,340 330,340" fill="#B30095"/></svg></div>
           <div class="txt">
             <div class="ey">Featured game</div>
             <h3>The Values Quiz</h3>
@@ -699,7 +731,7 @@ function section(id){
   <section class="s-hero">
     <span class="big">${s.n}</span>
     <div class="wrap">
-      <div class="crumbs"><a href="#home">Home</a> <span>/</span> <span>${s.title}</span></div>
+      <div class="s-top"><a class="pill outline back" href="#home"><span aria-hidden="true">←</span> Back to home</a><nav class="crumbs" aria-label="Breadcrumb"><a href="#home">Home</a> <span aria-hidden="true">/</span> <span aria-current="page">${s.title}</span></nav></div>
       <div class="row">
         ${icon(s.icon,s.col)}
         <div><div class="eyebrow">Section ${s.n} · ${s.short}</div><h1>${s.title}</h1><p>${s.blurb}</p></div>
@@ -744,6 +776,15 @@ document.getElementById('closeMenu').onclick=closeMenu;
 document.getElementById('scrim').onclick=closeMenu;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
 nav.addEventListener('click',closeMenu);
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.yt'); if(!b) return;
+  const f=document.createElement('iframe');
+  f.src=`https://www.youtube-nocookie.com/embed/${b.dataset.yt}?autoplay=1&rel=0`;
+  f.title='Nielsen film'; f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen=true;
+  f.referrerPolicy='strict-origin-when-cross-origin';
+  b.parentElement.classList.add('yt-on'); b.replaceWith(f); f.focus();
+});
 
 /* ---------- router ---------- */
 function route(){
