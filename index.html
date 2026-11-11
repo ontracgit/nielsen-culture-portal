@@ -1,8 +1,10 @@
 <title>Culture Activation Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@tavus/embed@latest"></script>
 <style>
 :root{
   color-scheme:light;
@@ -278,6 +280,20 @@ header{background:#fff;border-bottom:0;box-shadow:0 1px 0 var(--line)}
 .f-side .txt{padding:28px 30px 34px}
 @media(max-width:980px){.f-big,.f-mid,.f-row{grid-template-columns:1fr}.f-big .img{order:-1;min-height:240px}.fcard .txt{padding:30px 24px}.f-mid .art{min-height:220px}}
 
+/* Nia: Culture Activation Partner (Tavus CVI card -> modal) */
+.f-nia{align-items:center}
+.nia-slot{width:auto;aspect-ratio:16/9;margin:24px;border-radius:12px;overflow:hidden;background:rgba(0,32,65,.55);min-width:0;max-width:100%}
+.nia-slot tavus-embed{display:block;width:100%;height:100%}
+.nia-missing{height:100%;display:grid;place-content:center;gap:6px;padding:20px;text-align:center;color:#C9D3E6;font-size:14px}
+.nia-missing b{color:#fff;font-size:16px}
+.f-nia .live{display:inline-flex;align-items:center;gap:8px}
+.f-nia .live:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 4px rgba(80,230,170,.2)}
+@media(max-width:980px){.f-nia .nia-slot{order:-1;margin:16px 16px 0}}
+@media(max-width:640px){.nia-slot{aspect-ratio:9/16}}
+/* home stays mounted (parked off-screen) while a section is open, so a call with Nia survives navigation */
+#homeView.parked{position:fixed;left:-300vw;top:0;width:100vw;visibility:hidden}
+#homeView.parked .nia-slot{visibility:visible}
+
 .view{animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -507,6 +523,39 @@ S.forEach((s,i)=>{s.n=String(i+1).padStart(2,'0')});
 
 /* ---------- views ---------- */
 const app=document.getElementById('app');
+app.innerHTML='<div id="homeView"></div><div id="secView" hidden></div>';
+const homeView=document.getElementById('homeView'), secView=document.getElementById('secView');
+
+/* ---------- Nia, Culture Activation Partner (Tavus) ---------- */
+// Tavus deployment from PAL Maker (not a secret). Empty = show a notice instead of Nia.
+const NIA_DEPLOYMENT_ID='9e066a99-37bb-466b-b1a4-e9f6042bb5fe';
+const NIA_EXPAND=JSON.stringify({enabled:true});
+const NIA_OVERRIDE=JSON.stringify({customization:{preview:{title:'Talk to Nia',description:'Your Culture Activation Partner. Live, right here.',btn_title:'Start talking'}}});
+function niaContext(){
+  return 'The visitor is a Nielsen employee on the Culture Activation portal (a concept demo). '
+   +'Nielsen values: Inclusion, Courage, Growth. Purpose: Powering a better media future for all people. Tagline: Audience Is Everything. '
+   +'Portal sections (id: title, what it holds): '
+   +S.map(s=>`${s.id}: ${s.title}, ${s.blurb}`).join(' | ')
+   +' | home: the portal home page. When the visitor wants to see one of these, call open_section with its id.';
+}
+const esc=v=>String(v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function niaEmbed(){
+  if(!NIA_DEPLOYMENT_ID) return `<div class="nia-missing"><b>Nia is not connected yet</b>Add the Tavus deployment id to show the live video partner here.</div>`;
+  return `<tavus-embed deployment-id="${esc(NIA_DEPLOYMENT_ID)}" expand-options="${esc(NIA_EXPAND)}" override-config="${esc(NIA_OVERRIDE)}" conversational-context="${esc(niaContext())}"></tavus-embed>`;
+}
+// Tool on the PAL: open_section({section_id}). Events bubble from <tavus-embed> to document.
+document.addEventListener('tavus:tool-call',e=>{
+  const {name,arguments:args,tool_call_id}=e.detail||{};
+  if(name!=='open_section') return;
+  const el=document.querySelector('tavus-embed');
+  const reply=(status,output)=>{ if(tool_call_id&&el&&el.sendMessage) el.sendMessage({event_type:'conversation.tool_result',properties:{tool_call_id,output,status}}); };
+  let id; try{ id=String(JSON.parse(args||'{}').section_id||'').trim(); }catch(err){}
+  if(id==='home'){ location.hash='home'; return reply('success',{opened:'Home page'}); }
+  const s=S.find(x=>x.id===id);
+  if(!s) return reply('error',{error:`Unknown section "${id}". Valid ids: ${S.map(x=>x.id).join(', ')}, home`});
+  location.hash=s.id;
+  reply('success',{opened:s.title,summary:s.blurb});
+});
 
 function spectrum(cols){
   // nested chevrons echoing the brand motion spectrum
@@ -567,7 +616,7 @@ function setHero(o){
 }
 
 function home(){
-  app.innerHTML=`<div class="view">
+  homeView.innerHTML=`<div class="view">
   <section class="hero">
     <div class="wrap"><div class="copy">
       <div class="eyebrow">Culture Activation Portal</div>
@@ -609,14 +658,14 @@ function home(){
         <div><div class="eyebrow">Featured this month</div><h2 id="featTitle">Stories, games and moments worth your time</h2></div>
         <p>A curated feed on the home page keeps the portal fresh. Example content shown.</p>
       </div>
-      <article class="fcard f-big">
+      <article class="fcard f-big f-nia" aria-labelledby="niaTitle">
         <div class="txt">
-          <div class="ey">Values in action</div>
-          <h3>How one team turned feedback into a weekly habit</h3>
-          <p>Fifteen minutes every Friday, one question each: what helped, what got in the way. Three months on, here is what changed for the team and their clients.</p>
-          <div class="meta"><span class="tg">Courage</span><span>◷ 4 min read</span></div>
+          <div class="ey">Your Culture Activation Partner</div>
+          <h3 id="niaTitle">Meet Nia</h3>
+          <p>Talk face to face with Nia about Nielsen's culture. She can explain what Inclusion, Courage and Growth look like day to day, suggest a game or challenge, and take you straight to the right part of the portal.</p>
+          <div class="meta"><span class="tg">Live video</span><span class="live">Available now</span></div>
         </div>
-        <div class="img" style="background-image:${img('team')}" role="img" aria-label="Two colleagues laughing at a desk"></div>
+        <div class="nia-slot">${niaEmbed()}</div>
       </article>
       <div class="f-row">
         <article class="fcard f-mid">
@@ -643,9 +692,9 @@ function home(){
 }
 
 function section(id){
-  const i=S.findIndex(s=>s.id===id); if(i<0) return home();
+  const i=S.findIndex(s=>s.id===id); if(i<0) return false;
   const s=S[i], c=C[s.col], prev=S[(i-1+S.length)%S.length], next=S[(i+1)%S.length];
-  app.innerHTML=`<div class="view" style="--c:${c}">
+  secView.innerHTML=`<div class="view" style="--c:${c}">
   <section class="s-hero">
     <span class="big">${s.n}</span>
     <div class="wrap">
@@ -697,7 +746,13 @@ nav.addEventListener('click',closeMenu);
 function route(){
   const h=location.hash;
   const id=h.replace(/^#\/?/,'');
-  if(id && id!=='home') section(id); else home();
+  const onSection = id && id!=='home' && section(id)!==false;
+  if(onSection){ secView.hidden=false; homeView.classList.add('parked'); homeView.setAttribute('aria-hidden','true'); }
+  else{
+    secView.hidden=true; secView.innerHTML='';
+    if(!homeView.firstChild) home();
+    homeView.classList.remove('parked'); homeView.removeAttribute('aria-hidden');
+  }
   renderNav(id);
   window.scrollTo({top:0,behavior:'instant'});
 }
